@@ -13,6 +13,15 @@ def display_shoes():
 
     return render_template('recommendations.html', owned=shoes)
 
+@app.template_filter('format_model_name')
+def remove_dashes(text):
+    return text.replace('-', ' ')
+
+@app.template_filter('format_price')
+def format_price(text):
+    return '${:,}'.format(int(text))
+
+
 ### DB CONFIG METHODS
 
 def get_db():

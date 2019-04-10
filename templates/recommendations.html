@@ -41,8 +41,8 @@
 	</tr>
 	{% for shoe in owned %}
 	<tr>
-		<td>{{shoe['Model Name']}}</td>
-		<td>{{shoe['Retail Price']}}</td>
+		<td>{{shoe['Model Name'] | format_model_name}}</td>
+		<td>{{shoe['Retail Price'] | format_price}}</td>
 	</tr>
 	{% endfor %}
 </table>
