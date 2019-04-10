@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>Sneaker Recommedation List</h1>
+
+<table>
+	<tr>
+		<th align='left'>Model</th>
+		<th align='left'>Price</th>
+	</tr>
+	{% for shoe in owned %}
+		<tr>
+			<td>{{shoe}}</td>
+		</tr>
+	{% endfor %}
+</table>
+
+</body>
+</html>
