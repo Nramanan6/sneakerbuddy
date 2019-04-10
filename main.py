@@ -4,18 +4,14 @@ from flask import Flask, g, render_template
 app = Flask(__name__)
 DATABASE = 'db/sneakerbuddy.db'
 
-@app.route("/")
-def template_test():
-    return render_template('recommendations.html', owned=["Off-White", "Raf", "Yeezy"])
-
-@app.route('/shoes')
+@app.route('/recommendations')
 def display_shoes():
     shoes = []
 
     for shoe in query_db('select * from sneakers ORDER BY hype_avg_score DESC'): 
         shoes.append(shoe)
 
-    return render_template('shoes.html', shoes=shoes)
+    return render_template('recommendations.html', owned=shoes)
 
 ### DB CONFIG METHODS
 
