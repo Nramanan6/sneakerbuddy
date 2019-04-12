@@ -43,20 +43,18 @@ h1, h2 {
 
 <table id='sales_table'>
   <tr>
-    <th align='left'>Date/Time</th>
+    <th align='left'>Date</th>
+    <th align='left'>Size</th>
     <th align='left'>Price</th>
   </tr>
-  {% for sale in sales %}
+  {% for sale in mostRecent %}
   <tr>
-    <td>{{sale}}</td>
-    <td>{{sale}}</td>
+    <td>{{sale['Order Date']}}</td>
+    <td>{{sale['Shoe Size']}}</td>
+    <td>{{sale['Sale Price']}}</td>
   </tr>
   {% endfor %}
 </table>
-
-<script type="text/javascript">
-
-</script>
 
 </body>
 </html>

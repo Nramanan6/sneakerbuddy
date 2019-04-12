@@ -24,7 +24,15 @@ def display_model_details(sneaker_model):
     if len(shoes) != 0:
     	shoe = shoes[0]['Model Name']
 
-    return render_template('model_details.html', model=shoe)
+    sales = []
+    for sale in query_db("select * from sales where [Sneaker Name]=?", [sneaker_model]):
+    	sale['splitDate'] = sale['Order Date'].split('/')
+    	sales.append(sale)
+    sales.sort(key = lambda sale: (int(sale['splitDate'][2]), int(sale['splitDate'][0]), int(sale['splitDate'][1])))
+    mostRecent = sales[len(sales)-5:len(sales)]
+    mostRecent.reverse()
+
+    return render_template('model_details.html', model=shoe, sales=sales, mostRecent=mostRecent)
 
 @app.template_filter('format_model_name')
 def remove_dashes(text):
