@@ -13,6 +13,19 @@ def display_shoes():
 
     return render_template('recommendations.html', owned=shoes)
 
+@app.route('/sneaker/<sneaker_model>')
+def display_model_details(sneaker_model):
+    shoes = []
+    sneaker_model = sneaker_model.replace(' ', '-')
+    for shoe in query_db("select * from sneakers WHERE [Model Name]=?", [sneaker_model]): 
+        shoes.append(shoe)
+
+    shoe = ''
+    if len(shoes) != 0:
+    	shoe = shoes[0]['Model Name']
+
+    return render_template('model_details.html', model=shoe)
+
 @app.template_filter('format_model_name')
 def remove_dashes(text):
     return text.replace('-', ' ')
@@ -20,7 +33,6 @@ def remove_dashes(text):
 @app.template_filter('format_price')
 def format_price(text):
     return '${:,}'.format(int(text))
-
 
 ### DB CONFIG METHODS
 

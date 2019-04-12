@@ -2,7 +2,7 @@
 <html>
 <head>
 <style>
-#rec_table {
+#rec_table, #header_text {
   font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif;
   border-collapse: collapse;
   width: 100%;
@@ -32,7 +32,7 @@
 </head>
 <body>
 
-<h1>Sneaker Recommedation List</h1>
+<h1 id='header_text'>Sneaker Recommedation List</h1>
 
 <table id='rec_table'>
 	<tr>
@@ -46,6 +46,19 @@
 	</tr>
 	{% endfor %}
 </table>
+
+<script type="text/javascript">
+var elements = document.getElementsByTagName("table")[0].getElementsByTagName("tbody")[0];
+elements.onclick = function(e) {
+    e = e || window.event;
+    var data = [];
+    var target = e.srcElement || e.target;
+    while (target && target.nodeName !== "TR") {
+        target = target.parentNode;
+    }
+    window.location = 'sneaker/' + target.getElementsByTagName("td")[0].innerHTML;
+};
+</script>
 
 </body>
 </html>
