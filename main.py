@@ -8,10 +8,19 @@ DATABASE = 'db/sneakerbuddy.db'
 def display_shoes():
     shoes = []
 
-    for shoe in query_db('select * from sneakers ORDER BY hype_avg_score DESC'): 
+    for shoe in query_db('select * from sneakers ORDER BY hype_avg_score DESC limit 10'): 
         shoes.append(shoe)
 
-    return render_template('recommendations.html', owned=shoes)
+    return render_template('recommendations.html', recs=shoes)
+
+@app.route('/portfolio')
+def display_owned():
+    shoes = []
+
+    for shoe in query_db('select * from sneakers'): 
+        shoes.append(shoe)
+
+    return render_template('portfolio.html', all_shoes=shoes, owned=shoes)
 
 @app.route('/sneaker/<sneaker_model>')
 def display_model_details(sneaker_model):

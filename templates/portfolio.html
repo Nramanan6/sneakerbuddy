@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+#owned_table, #header_text, label, select {
+  font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+}
+
+#owned_table {
+  width: 900px;
+}
+
+#owned_table td {
+  border: 1px solid #808080;
+}
+
+#owned_table td, #owned_table th {
+  padding: 8px;
+}
+
+#owned_table tr:nth-child(even) {
+	background-color: #f2f2f2;}
+
+#owned_table tr:hover {background-color: #ddd;}
+
+#owned_table th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #4CAF50;
+  color: white;
+}
+</style>
+</head>
+<body>
+
+<h1 id='header_text'>Sneaker Recommedation List</h1>
+
+<label for='sneaker_select'>Sneaker</label>
+<select id='sneaker_select'>
+  {% for shoe in all_shoes %}
+  <option>{{shoe['Model Name']}}</option>
+  {% endfor %}
+</select>
+<label for='size_select'>Size</label>
+<select id='size_select'></select>
+<button type='button' id='add_sneaker'>Add to Portfolio</button>
+
+<p style='padding: 0 4em 0'></p>
+
+<table id='owned_table'>
+	<tr>
+		<th align='left'>Model</th>
+    <th align='left'>Size</th>
+		<th align='left'>Price</th>
+    <th align='left'>Action</th>
+	</tr>
+	{% for shoe in owned %}
+	<tr>
+		<td>{{shoe['Model Name'] | format_model_name}}</td>
+    <td>{{shoe['Shoe Size']}}</td>
+		<td>{{shoe['Retail Price'] | format_price}}</td>
+    <td><button align='left'>Remove</button></td>
+	</tr>
+	{% endfor %}
+</table>
+
+<script type='text/javascript'>
+var size_select = document.getElementById('size_select');
+for (var i = 4; i <= 14; i += 0.5) {
+  size_select.options[size_select.options.length] = new Option('' + i, i);
+}
+
+var add_sneaker = document.getElementById('add_sneaker');
+add_sneaker.onclick = function(e) {
+    //TODO: Update owned db table and show updated HTML table to user
+    window.location = 'portfolio';
+};
+</script>
+
+</body>
+</html>
