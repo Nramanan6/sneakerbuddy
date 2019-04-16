@@ -1,5 +1,5 @@
 import sqlite3
-from flask import Flask, g, render_template
+from flask import Flask, g, render_template, request
 
 app = Flask(__name__)
 DATABASE = 'db/sneakerbuddy.db'
@@ -16,11 +16,38 @@ def display_shoes():
 @app.route('/portfolio')
 def display_owned():
     shoes = []
-
+    owned = []
     for shoe in query_db('select * from sneakers'): 
         shoes.append(shoe)
+    for shoe in query_db('select * from owned'):
+    	owned.append(shoe)
 
-    return render_template('portfolio.html', all_shoes=shoes, owned=shoes)
+    return render_template('portfolio.html', all_shoes=shoes, owned=owned)
+
+@app.route('/add_owned_sneaker', methods=['POST'])
+def submit_owned():
+	select = request.form.get('sneaker_select')
+	size = request.form.get('size_select')
+	query_db('insert into owned(username, model, size) values(?,?,?)', ['testuser', select, size])
+	shoes = []
+	owned = []
+	for shoe in query_db('select * from sneakers'): 
+		shoes.append(shoe)
+	for shoe in query_db('select * from owned'):
+		owned.append(shoe)
+	return render_template('portfolio.html', all_shoes=shoes, owned=owned)
+
+@app.route('/remove_owned_sneaker', methods=['POST'])
+def remove_owned():
+	ownedId = request.form.get('owned_id')
+	query_db('delete from owned where id=?', [ownedId])
+	shoes = []
+	owned = []
+	for shoe in query_db('select * from sneakers'): 
+		shoes.append(shoe)
+	for shoe in query_db('select * from owned'):
+		owned.append(shoe)
+	return render_template('portfolio.html', all_shoes=shoes, owned=owned)
 
 @app.route('/sneaker/<sneaker_model>')
 def display_model_details(sneaker_model):
@@ -56,7 +83,7 @@ def format_price(text):
 def get_db():
     db = getattr(g, '_database', None)
     if db is None:
-        db = g._database = sqlite3.connect(DATABASE)
+        db = g._database = sqlite3.connect(DATABASE, isolation_level=None)
     db.row_factory = make_dicts
     return db
 

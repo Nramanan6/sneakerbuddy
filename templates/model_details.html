@@ -58,8 +58,6 @@ var svg = d3.select('body')
 var chartWidth = svgWidth - padding.l - padding.r;
 var chartHeight = svgHeight - padding.t - padding.b;
 
-console.log(sales);
-
 var dayScale = d3.scaleLinear()
   .domain(d3.extent(sales, function(d) { return d['Day After Release']; }))
   .range([padding.l, chartWidth + padding.l]);

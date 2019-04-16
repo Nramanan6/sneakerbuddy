@@ -36,16 +36,17 @@
 <body>
 
 <h1 id='header_text'>Sneaker Recommedation List</h1>
-
-<label for='sneaker_select'>Sneaker</label>
-<select id='sneaker_select'>
-  {% for shoe in all_shoes %}
-  <option>{{shoe['Model Name']}}</option>
-  {% endfor %}
-</select>
-<label for='size_select'>Size</label>
-<select id='size_select'></select>
-<button type='button' id='add_sneaker'>Add to Portfolio</button>
+<form action='/add_owned_sneaker' method='post'>
+  <label for='sneaker_select'>Sneaker</label>
+  <select id='sneaker_select' name='sneaker_select'>
+    {% for shoe in all_shoes %}
+    <option>{{shoe['Model Name'] | format_model_name}}</option>
+    {% endfor %}
+  </select>
+  <label for='size_select'>Size</label>
+  <select id='size_select' name='size_select'></select>
+  <button type='submit' id='add_sneaker'>Add to Portfolio</button>
+</form>
 
 <p style='padding: 0 4em 0'></p>
 
@@ -53,15 +54,18 @@
 	<tr>
 		<th align='left'>Model</th>
     <th align='left'>Size</th>
-		<th align='left'>Price</th>
     <th align='left'>Action</th>
 	</tr>
 	{% for shoe in owned %}
 	<tr>
-		<td>{{shoe['Model Name'] | format_model_name}}</td>
-    <td>{{shoe['Shoe Size']}}</td>
-		<td>{{shoe['Retail Price'] | format_price}}</td>
-    <td><button align='left'>Remove</button></td>
+		<td>{{shoe['model'] | format_model_name}}</td>
+    <td>{{shoe['size']}}</td>
+    <td>
+      <form action='/remove_owned_sneaker' method='POST'>
+        <input id='owned_id' name='owned_id' type='hidden' value='{{shoe.id}}'>
+        <button type='submit' align='left'>Remove</button>
+      </form>
+    </td>
 	</tr>
 	{% endfor %}
 </table>
@@ -71,12 +75,6 @@ var size_select = document.getElementById('size_select');
 for (var i = 4; i <= 14; i += 0.5) {
   size_select.options[size_select.options.length] = new Option('' + i, i);
 }
-
-var add_sneaker = document.getElementById('add_sneaker');
-add_sneaker.onclick = function(e) {
-    //TODO: Update owned db table and show updated HTML table to user
-    window.location = 'portfolio';
-};
 </script>
 
 </body>
