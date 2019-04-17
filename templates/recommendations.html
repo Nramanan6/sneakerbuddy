@@ -57,18 +57,18 @@
 <script type='text/javascript'>
 var elements = document.getElementById('rec_table').getElementsByTagName('tbody')[0];
 elements.onclick = function(e) {
-    e = e || window.event;
-    var data = [];
-    var target = e.srcElement || e.target;
-    while (target && target.nodeName !== 'TR') {
-        target = target.parentNode;
-    }
-    window.location = 'sneaker/' + target.getElementsByTagName('td')[0].innerHTML;
+  e = e || window.event;
+  var data = [];
+  var target = e.srcElement || e.target;
+  while (target && target.nodeName !== 'TR') {
+      target = target.parentNode;
+  }
+  window.location = 'sneaker/' + target.getElementsByTagName('td')[0].innerHTML;
 };
 
 var portfolio_button = document.getElementById('portfolio');
 portfolio_button.onclick = function(e) {
-    window.location = 'portfolio';
+  window.location = 'portfolio';
 };
 </script>
 

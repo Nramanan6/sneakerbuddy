@@ -1,4 +1,5 @@
 import sqlite3
+import operator
 from flask import Flask, g, render_template, request
 
 app = Flask(__name__)
@@ -6,48 +7,77 @@ DATABASE = 'db/sneakerbuddy.db'
 
 @app.route('/recommendations')
 def display_shoes():
-    shoes = []
+    shoes = {}
+    defaultShoeList = []
+    ownedShoes = []
 
-    for shoe in query_db('select * from sneakers ORDER BY hype_avg_score DESC limit 10'): 
-        shoes.append(shoe)
+    for shoe in query_db('select * from sneakers'): 
+        shoes[shoe['Model Name']] = shoe
+        if len(defaultShoeList) < 10:
+            defaultShoeList.append(shoe)
 
-    return render_template('recommendations.html', recs=shoes)
+    for ownedShoe in query_db('select * from owned'):
+        ownedShoes.append(ownedShoe['model'])
+
+    if not ownedShoes:
+        return render_template('recommendations.html', recs=defaultShoeList)
+
+    recScore = {}
+    for shoe in shoes:
+        if shoe not in ownedShoes:
+            recScore[shoe] = 0
+    for shoe in recScore:
+        for ownedShoe in ownedShoes:
+            for color in shoes[shoe]['Color'].split(' '):
+                for otherColor in shoes[ownedShoe]['Color'].split(' '):
+                    if color == otherColor:
+                        recScore[shoe] += 5
+            if shoes[shoe]['Brand'] == shoes[ownedShoe]['Brand']:
+                recScore[shoe] += 10
+
+    recommendations = []
+    for i in range(0, 10):
+        model = max(recScore.items(), key=operator.itemgetter(1))[0]
+        recScore.pop(model, None)
+        recommendations.append(shoes[model])
+
+    return render_template('recommendations.html', recs=recommendations)
 
 @app.route('/portfolio')
 def display_owned():
     shoes = []
     owned = []
-    for shoe in query_db('select * from sneakers'): 
+    for shoe in query_db('select * from sneakers'):
         shoes.append(shoe)
     for shoe in query_db('select * from owned'):
-    	owned.append(shoe)
+        owned.append(shoe)
 
     return render_template('portfolio.html', all_shoes=shoes, owned=owned)
 
 @app.route('/add_owned_sneaker', methods=['POST'])
 def submit_owned():
-	select = request.form.get('sneaker_select')
-	size = request.form.get('size_select')
-	query_db('insert into owned(username, model, size) values(?,?,?)', ['testuser', select, size])
-	shoes = []
-	owned = []
-	for shoe in query_db('select * from sneakers'): 
-		shoes.append(shoe)
-	for shoe in query_db('select * from owned'):
-		owned.append(shoe)
-	return render_template('portfolio.html', all_shoes=shoes, owned=owned)
+    select = request.form.get('sneaker_select').replace(' ', '-')
+    size = request.form.get('size_select')
+    query_db('insert into owned(username, model, size) values(?,?,?)', ['testuser', select, size])
+    shoes = []
+    owned = []
+    for shoe in query_db('select * from sneakers'): 
+        shoes.append(shoe)
+    for shoe in query_db('select * from owned'):
+        owned.append(shoe)
+    return render_template('portfolio.html', all_shoes=shoes, owned=owned)
 
 @app.route('/remove_owned_sneaker', methods=['POST'])
 def remove_owned():
-	ownedId = request.form.get('owned_id')
-	query_db('delete from owned where id=?', [ownedId])
-	shoes = []
-	owned = []
-	for shoe in query_db('select * from sneakers'): 
-		shoes.append(shoe)
-	for shoe in query_db('select * from owned'):
-		owned.append(shoe)
-	return render_template('portfolio.html', all_shoes=shoes, owned=owned)
+    ownedId = request.form.get('owned_id')
+    query_db('delete from owned where id=?', [ownedId])
+    shoes = []
+    owned = []
+    for shoe in query_db('select * from sneakers'): 
+        shoes.append(shoe)
+    for shoe in query_db('select * from owned'):
+        owned.append(shoe)
+    return render_template('portfolio.html', all_shoes=shoes, owned=owned)
 
 @app.route('/sneaker/<sneaker_model>')
 def display_model_details(sneaker_model):
@@ -58,12 +88,12 @@ def display_model_details(sneaker_model):
 
     shoe = ''
     if len(shoes) != 0:
-    	shoe = shoes[0]['Model Name']
+        shoe = shoes[0]['Model Name']
 
     sales = []
     for sale in query_db("select * from sales where [Sneaker Name]=?", [sneaker_model]):
-    	sale['splitDate'] = sale['Order Date'].split('/')
-    	sales.append(sale)
+        sale['splitDate'] = sale['Order Date'].split('/')
+        sales.append(sale)
     sales.sort(key = lambda sale: (int(sale['splitDate'][2]), int(sale['splitDate'][0]), int(sale['splitDate'][1])))
     mostRecent = sales[len(sales)-5:len(sales)]
     mostRecent.reverse()

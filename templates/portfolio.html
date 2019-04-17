@@ -35,7 +35,12 @@
 </head>
 <body>
 
-<h1 id='header_text'>Sneaker Recommedation List</h1>
+<h1 id='header_text'>Sneaker Portfolio</h1>
+
+<button type='button' id='rec_button'>View Recommendations</button>
+
+<p style='padding: 0 4em 0'></p>
+
 <form action='/add_owned_sneaker' method='post'>
   <label for='sneaker_select'>Sneaker</label>
   <select id='sneaker_select' name='sneaker_select'>
@@ -75,6 +80,22 @@ var size_select = document.getElementById('size_select');
 for (var i = 4; i <= 14; i += 0.5) {
   size_select.options[size_select.options.length] = new Option('' + i, i);
 }
+
+var elements = document.getElementById('owned_table').getElementsByTagName('tbody')[0];
+elements.onclick = function(e) {
+  e = e || window.event;
+  var data = [];
+  var target = e.srcElement || e.target;
+  while (target && target.nodeName !== 'TR') {
+      target = target.parentNode;
+  }
+  window.location = 'sneaker/' + target.getElementsByTagName('td')[0].innerHTML;
+};
+
+var rec_button = document.getElementById('rec_button');
+rec_button.onclick = function(e) {
+  window.location = 'recommendations';
+};
 </script>
 
 </body>
