@@ -40,7 +40,7 @@ h1, h2, text {
 
 <h1>{{model | format_model_name}}</h1>
 
-<button type='button' id='rec_button'>View Recommendations</button>
+<button type='button' id='portfolio_button'>View Portfolio</button>
 
 <h2>Sales History</h2>
 
@@ -123,9 +123,9 @@ svg.append('path')
   .style('fill', 'none')
   .style('stroke-width', 2);
 
-var rec_button = document.getElementById('rec_button');
-rec_button.onclick = function(e) {
-  window.location = '/recommendations';
+var portfolio_button = document.getElementById('portfolio_button');
+portfolio_button.onclick = function(e) {
+  window.location = '/portfolio';
 };
 
 </script>

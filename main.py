@@ -1,6 +1,5 @@
 from flask import Flask, g, render_template, request
 import flask_login
-from models import User
 import operator
 import os
 import sqlite3

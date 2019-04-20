@@ -98,17 +98,17 @@ elements.onclick = function(e) {
   while (target && target.nodeName !== 'TR') {
       target = target.parentNode;
   }
-  window.location = 'sneaker/' + target.getElementsByTagName('td')[0].innerHTML;
+  window.location = '/sneaker/' + target.getElementsByTagName('td')[0].innerHTML;
 };
 
 var collector = document.getElementById('collector');
 collector.onclick = function(e) {
-  window.location = 'recommendations/collector';
+  window.location = '/recommendations/collector';
 };
 
 var investor = document.getElementById('investor');
 investor.onclick = function(e) {
-  window.location = 'recommendations/investor';
+  window.location = '/recommendations/investor';
 };
 </script>
 

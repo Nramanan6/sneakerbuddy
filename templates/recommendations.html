@@ -63,12 +63,12 @@ elements.onclick = function(e) {
   while (target && target.nodeName !== 'TR') {
       target = target.parentNode;
   }
-  window.location = 'sneaker/' + target.getElementsByTagName('td')[0].innerHTML;
+  window.location = '/sneaker/' + target.getElementsByTagName('td')[0].innerHTML;
 };
 
 var portfolio_button = document.getElementById('portfolio');
 portfolio_button.onclick = function(e) {
-  window.location = 'portfolio';
+  window.location = '/portfolio';
 };
 </script>
 
