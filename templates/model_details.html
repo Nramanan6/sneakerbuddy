@@ -40,6 +40,8 @@ h1, h2, text {
 
 <h1>{{model | format_model_name}}</h1>
 
+<button type='button' id='rec_button'>View Recommendations</button>
+
 <h2>Sales History</h2>
 
 <script>
@@ -57,8 +59,6 @@ var svg = d3.select('body')
 // Compute chart dimensions
 var chartWidth = svgWidth - padding.l - padding.r;
 var chartHeight = svgHeight - padding.t - padding.b;
-
-console.log(sales);
 
 var dayScale = d3.scaleLinear()
   .domain(d3.extent(sales, function(d) { return d['Day After Release']; }))
@@ -78,7 +78,8 @@ svg.selectAll('.point')
   })
   .attr('cy', function(d) {
     return priceScale(parseInt(d['Sale Price'].substring(1).replace(/,/g, "")));
-  });
+  })
+  .style('fill', 'grey');
 
 svg.append('g')
   .attr('class', 'axis')
@@ -95,6 +96,37 @@ svg.append('g')
 svg.append('text')
   .text('Price ($)')
   .attr('transform', 'translate('+ 15 + ',' + (chartHeight / 2 + 30) + '), rotate(270)');
+
+var byDate = d3.nest()
+  .key(function(d) {
+    return d['Day After Release'];
+  })
+  .entries(sales)
+byDate.forEach(function(d) {
+  d['average'] = 0;
+  d['values'].forEach(function(e) {
+    d['average'] += parseInt(e['Sale Price'].substring(1).replace(/,/g, ""));
+  });
+  d['average'] /= d['values'].length;
+});
+
+var line = d3.line()
+  .x(function(d) {return dayScale(parseInt(d['key']))})
+  .y(function(d) {return priceScale(d['average'])})
+  .curve(d3.curveMonotoneX);
+
+svg.append('path')
+  .datum(byDate)
+  .attr('class', 'line')
+  .attr('d', line)
+  .style('stroke', 'black')
+  .style('fill', 'none')
+  .style('stroke-width', 2);
+
+var rec_button = document.getElementById('rec_button');
+rec_button.onclick = function(e) {
+  window.location = '/recommendations';
+};
 
 </script>
 
