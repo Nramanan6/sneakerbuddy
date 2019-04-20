@@ -46,6 +46,29 @@ h1, h2, text {
 
 <script>
 var sales = {{ sales | tojson }};
+var predictions = {{ predictions | tojson }};
+var maxDays = 0;
+var lastEntry = 0;
+sales.forEach(function(sale) {
+  if (sale['Day After Release'] > maxDays) {
+    maxDays = sale['Day After Release'];
+    lastEntry = sale;
+  }
+});
+
+//Create new set of only predictions after the last sale to make graph pretty
+var graphedPredictions = [];
+graphedPredictions.push(lastEntry);
+predictions.forEach(function(prediction) {
+  var splitDate = prediction['date'].split('/');
+  var splitRelease = sales[0]['Release Date'].split('/');
+  var daysAfter = (new Date(parseInt(splitDate[0]), parseInt(splitDate[1]), parseInt(splitDate[2]))
+      - new Date(parseInt(splitRelease[2]), parseInt(splitRelease[0]), parseInt(splitRelease[1]))) / 86400000;
+  if (daysAfter > maxDays) {
+    prediction['Day After Release'] = daysAfter;
+    graphedPredictions.push(prediction);
+  }
+});
 
 var svgWidth = 900;
 var svgHeight = 400;
@@ -61,7 +84,7 @@ var chartWidth = svgWidth - padding.l - padding.r;
 var chartHeight = svgHeight - padding.t - padding.b;
 
 var dayScale = d3.scaleLinear()
-  .domain(d3.extent(sales, function(d) { return d['Day After Release']; }))
+  .domain([d3.min(sales, function(d) { return d['Day After Release']; }), d3.max(predictions, function(d) { return d['Day After Release']; })])
   .range([padding.l, chartWidth + padding.l]);
 var priceScale = d3.scaleLinear()
   .domain(d3.extent(sales, function(d) { return parseInt(d['Sale Price'].substring(1).replace(/,/g, "")); }))
@@ -102,12 +125,16 @@ var byDate = d3.nest()
     return d['Day After Release'];
   })
   .entries(sales)
+
 byDate.forEach(function(d) {
   d['average'] = 0;
   d['values'].forEach(function(e) {
     d['average'] += parseInt(e['Sale Price'].substring(1).replace(/,/g, ""));
   });
   d['average'] /= d['values'].length;
+  if (parseInt(d['key']) == graphedPredictions[0]['Day After Release']) {
+    graphedPredictions[0]['yhat'] = d['average'];
+  }
 });
 
 var line = d3.line()
@@ -115,11 +142,24 @@ var line = d3.line()
   .y(function(d) {return priceScale(d['average'])})
   .curve(d3.curveMonotoneX);
 
+var line2 = d3.line()
+  .x(function(d) {return dayScale(d['Day After Release'])})
+  .y(function(d) {return priceScale(d['yhat'])})
+  .curve(d3.curveMonotoneX);
+
 svg.append('path')
   .datum(byDate)
   .attr('class', 'line')
   .attr('d', line)
   .style('stroke', 'black')
+  .style('fill', 'none')
+  .style('stroke-width', 2);
+
+svg.append('path')
+  .datum(graphedPredictions)
+  .attr('class', 'line')
+  .attr('d', line2)
+  .style('stroke', 'green')
   .style('fill', 'none')
   .style('stroke-width', 2);
 

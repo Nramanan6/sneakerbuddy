@@ -108,9 +108,6 @@ def display_shoes(user_type):
 
     recScore = generate_recommendations(shoes, ownedShoes, user_type)
 
-    print(recScore)
-
-
     recommendations = []
     for i in range(0, 10):
         model = max(recScore.items(), key=operator.itemgetter(1))[0]
@@ -194,13 +191,16 @@ def display_model_details(sneaker_model):
 
     sales = []
     for sale in query_db("select * from sales where [Sneaker Name]=?", [sneaker_model]):
-        sale['splitDate'] = sale['Order Date'].split('/')
         sales.append(sale)
-    sales.sort(key = lambda sale: (int(sale['splitDate'][2]), int(sale['splitDate'][0]), int(sale['splitDate'][1])))
+    sales.sort(key = lambda sale: sale['Day After Release'])
     mostRecent = sales[len(sales)-5:len(sales)]
     mostRecent.reverse()
 
-    return render_template('model_details.html', model=shoe, sales=sales, mostRecent=mostRecent)
+    predictions = []
+    for prediction in query_db("select * from predictions where [Sneaker Name]=?", [sneaker_model]):
+        predictions.append(prediction)
+
+    return render_template('model_details.html', model=shoe, sales=sales, mostRecent=mostRecent, predictions=predictions)
 
 @app.template_filter('format_model_name')
 def remove_dashes(text):
