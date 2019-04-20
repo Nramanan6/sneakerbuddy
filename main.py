@@ -1,8 +1,93 @@
+from flask import *
+import flask_login
+from models import User
+import os
 import sqlite3
-from flask import Flask, g, render_template
 
 app = Flask(__name__)
+app.secret_key = 'sneakerbuddiez4lyf'
+project_dir = os.path.dirname(os.path.abspath(__file__))
 DATABASE = 'db/sneakerbuddy.db'
+
+db_file_path = "sqlite:///{}".format(os.path.join(project_dir, DATABASE))
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_file_path
+
+login_manager = flask_login.LoginManager()
+login_manager.init_app(app)
+
+
+@login_manager.user_loader
+def user_loader(username):
+    users = query_db("select * from users WHERE username=?", [username])
+    user = next(iter(users), None)
+
+    if user is None:
+         return
+
+    user = User()
+    user.username = username
+    print(user)
+    return user
+
+@login_manager.request_loader
+def request_loader(request):
+    username = request.form.get('username')
+    users = query_db("select * from users WHERE username=?", [username])
+    user = next(iter(users), None)
+
+    if user is None:
+        return
+
+    new_user = User(user['username'], request.form.get('password'), user['salt'])
+
+    # DO NOT ever store passwords in plaintext and always compare password
+    # hashes using constant-time comparison!
+    new_user.is_authenticated = new_user.check_password(user['hashed_pw'])
+    print(new_user)
+    return new_user
+
+@app.route('/login', methods=['GET', 'POST'])
+def login(head="Sign in here"):
+    if request.method == 'GET':
+        return '''
+               <form action='login' method='POST'>
+                <h2>{}</h2>
+                <input type='text' name='username' id='username' placeholder='username'/>
+                <br />
+                <input type='password' name='password' id='password' placeholder='password'/>
+                <br />
+                <input type='submit' name='submit'/>
+               </form>
+               '''.format(head)
+    else:
+        username = request.form['username']
+        users = query_db('select * from users WHERE username=?', [username], False)
+        if len(users) == 0:
+            return 'User not found. <a href="/login">Login again</a>'
+        db_user = next(iter(users))
+        print(db_user)
+        ## if db hashed_pass == bcrypt.hashpw(input, db salt)
+        user = User(db_user['username'], request.form['password'], db_user['salt'])
+        if user.check_password(db_user['hashed_pw']):
+            flask_login.login_user(user)
+            return redirect(url_for('protected'))
+        else:
+            return 'Bad login. <a href="/login">Login again</a>'
+
+@app.route('/protected')
+@flask_login.login_required
+def protected():
+    print(flask_login.current_user)
+    return 'Logged in as: ' + flask_login.current_user.username
+
+@app.route('/register/<username>/<password>')
+def register(username, password):
+    u = User(username, password)
+   
+    res = query_db("insert into users VALUES (null, ?, ?, ?)", [u.username, u.salt, u.hashed_pass], True)
+
+    return str(res)
 
 @app.route('/recommendations')
 def display_shoes():
@@ -60,8 +145,10 @@ def get_db():
     db.row_factory = make_dicts
     return db
 
-def query_db(query, args=(), one=False):
+def query_db(query, args=(), commit=False, one=False):
     cur = get_db().execute(query, args)
+    if commit:
+        get_db().commit()
     rv = cur.fetchall()
     cur.close()
     return (rv[0] if rv else None) if one else rv
