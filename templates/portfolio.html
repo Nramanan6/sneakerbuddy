@@ -2,6 +2,10 @@
 <html>
 <head>
 <style>
+#rec_text {
+  display: inline-block;
+}
+
 #owned_table, #header_text, label, select {
   font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif;
   border-collapse: collapse;
@@ -37,7 +41,12 @@
 
 <h1 id='header_text'>Sneaker Portfolio</h1>
 
-<button type='button' id='rec_button'>View Recommendations</button>
+<h4 id='rec_text'>View Recommendations -- I am a sneaker...</h1>
+
+<button type='button' id='collector'>Collector</button>
+
+<button type='button' id='investor'>Investor</button>
+
 
 <p style='padding: 0 4em 0'></p>
 
@@ -92,9 +101,14 @@ elements.onclick = function(e) {
   window.location = 'sneaker/' + target.getElementsByTagName('td')[0].innerHTML;
 };
 
-var rec_button = document.getElementById('rec_button');
-rec_button.onclick = function(e) {
-  window.location = 'recommendations';
+var collector = document.getElementById('collector');
+collector.onclick = function(e) {
+  window.location = 'recommendations/collector';
+};
+
+var investor = document.getElementById('investor');
+investor.onclick = function(e) {
+  window.location = 'recommendations/investor';
 };
 </script>
 

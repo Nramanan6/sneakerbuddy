@@ -14,84 +14,84 @@ db_file_path = "sqlite:///{}".format(os.path.join(project_dir, DATABASE))
 
 app.config['SQLALCHEMY_DATABASE_URI'] = db_file_path
 
-login_manager = flask_login.LoginManager()
-login_manager.init_app(app)
+# login_manager = flask_login.LoginManager()
+# login_manager.init_app(app)
 
 
-@login_manager.user_loader
-def user_loader(username):
-    users = query_db("select * from users WHERE username=?", [username])
-    user = next(iter(users), None)
+# @login_manager.user_loader
+# def user_loader(username):
+#     users = query_db("select * from users WHERE username=?", [username])
+#     user = next(iter(users), None)
 
-    if user is None:
-         return
+#     if user is None:
+#          return
 
-    user = User()
-    user.username = username
-    print(user)
-    return user
+#     user = User()
+#     user.username = username
+#     print(user)
+#     return user
 
-@login_manager.request_loader
-def request_loader(request):
-    username = request.form.get('username')
-    users = query_db("select * from users WHERE username=?", [username])
-    user = next(iter(users), None)
+# @login_manager.request_loader
+# def request_loader(request):
+#     username = request.form.get('username')
+#     users = query_db("select * from users WHERE username=?", [username])
+#     user = next(iter(users), None)
 
-    if user is None:
-        return
+#     if user is None:
+#         return
 
-    new_user = User(user['username'], request.form.get('password'), user['salt'])
+#     new_user = User(user['username'], request.form.get('password'), user['salt'])
 
-    # DO NOT ever store passwords in plaintext and always compare password
-    # hashes using constant-time comparison!
-    new_user.is_authenticated = new_user.check_password(user['hashed_pw'])
-    print(new_user)
-    return new_user
+#     # DO NOT ever store passwords in plaintext and always compare password
+#     # hashes using constant-time comparison!
+#     new_user.is_authenticated = new_user.check_password(user['hashed_pw'])
+#     print(new_user)
+#     return new_user
 
-@app.route('/login', methods=['GET', 'POST'])
-def login(head="Sign in here"):
-    if request.method == 'GET':
-        return '''
-               <form action='login' method='POST'>
-                <h2>{}</h2>
-                <input type='text' name='username' id='username' placeholder='username'/>
-                <br />
-                <input type='password' name='password' id='password' placeholder='password'/>
-                <br />
-                <input type='submit' name='submit'/>
-               </form>
-               '''.format(head)
-    else:
-        username = request.form['username']
-        users = query_db('select * from users WHERE username=?', [username], False)
-        if len(users) == 0:
-            return 'User not found. <a href="/login">Login again</a>'
-        db_user = next(iter(users))
-        print(db_user)
-        ## if db hashed_pass == bcrypt.hashpw(input, db salt)
-        user = User(db_user['username'], request.form['password'], db_user['salt'])
-        if user.check_password(db_user['hashed_pw']):
-            flask_login.login_user(user)
-            return redirect(url_for('protected'))
-        else:
-            return 'Bad login. <a href="/login">Login again</a>'
+# @app.route('/login', methods=['GET', 'POST'])
+# def login(head="Sign in here"):
+#     if request.method == 'GET':
+#         return '''
+#                <form action='login' method='POST'>
+#                 <h2>{}</h2>
+#                 <input type='text' name='username' id='username' placeholder='username'/>
+#                 <br />
+#                 <input type='password' name='password' id='password' placeholder='password'/>
+#                 <br />
+#                 <input type='submit' name='submit'/>
+#                </form>
+#                '''.format(head)
+#     else:
+#         username = request.form['username']
+#         users = query_db('select * from users WHERE username=?', [username], False)
+#         if len(users) == 0:
+#             return 'User not found. <a href="/login">Login again</a>'
+#         db_user = next(iter(users))
+#         print(db_user)
+#         ## if db hashed_pass == bcrypt.hashpw(input, db salt)
+#         user = User(db_user['username'], request.form['password'], db_user['salt'])
+#         if user.check_password(db_user['hashed_pw']):
+#             flask_login.login_user(user)
+#             return redirect(url_for('protected'))
+#         else:
+#             return 'Bad login. <a href="/login">Login again</a>'
 
-@app.route('/protected')
-@flask_login.login_required
-def protected():
-    print(flask_login.current_user)
-    return 'Logged in as: ' + flask_login.current_user.username
+# @app.route('/protected')
+# @flask_login.login_required
+# def protected():
+#     print(flask_login.current_user)
+#     return 'Logged in as: ' + flask_login.current_user.username
 
-@app.route('/register/<username>/<password>')
-def register(username, password):
-    u = User(username, password)
+# @app.route('/register/<username>/<password>')
+# def register(username, password):
+#     u = User(username, password)
    
-    res = query_db("insert into users VALUES (null, ?, ?, ?)", [u.username, u.salt, u.hashed_pass], True)
+#     res = query_db("insert into users VALUES (null, ?, ?, ?)", [u.username, u.salt, u.hashed_pass], True)
 
-    return str(res)
+#     return str(res)
 
-@app.route('/recommendations')
-def display_shoes():
+@app.route('/recommendations/<user_type>')
+def display_shoes(user_type):
     shoes = {}
     defaultShoeList = []
     ownedShoes = []
@@ -107,18 +107,10 @@ def display_shoes():
     if not ownedShoes:
         return render_template('recommendations.html', recs=defaultShoeList)
 
-    recScore = {}
-    for shoe in shoes:
-        if shoe not in ownedShoes:
-            recScore[shoe] = 0
-    for shoe in recScore:
-        for ownedShoe in ownedShoes:
-            for color in shoes[shoe]['Color'].split(' '):
-                for otherColor in shoes[ownedShoe]['Color'].split(' '):
-                    if color == otherColor:
-                        recScore[shoe] += 5
-            if shoes[shoe]['Brand'] == shoes[ownedShoe]['Brand']:
-                recScore[shoe] += 10
+    recScore = generate_recommendations(shoes, ownedShoes, user_type)
+
+    print(recScore)
+
 
     recommendations = []
     for i in range(0, 10):
@@ -127,6 +119,32 @@ def display_shoes():
         recommendations.append(shoes[model])
 
     return render_template('recommendations.html', recs=recommendations)
+
+def generate_recommendations(shoes, owned, user_type='collector'):
+    recScore = {}
+    for shoe in shoes:
+        if shoe not in owned:
+            recScore[shoe] = 0
+    # If collector, use colors n whatnot
+    # else, it's an investor. use price prediction for seller first
+    if user_type == 'collector':
+        for shoe in recScore:
+            for ownedShoe in owned:
+                for color in shoes[shoe]['Color'].split(' '):
+                    for otherColor in shoes[ownedShoe]['Color'].split(' '):
+                        if color == otherColor:
+                            recScore[shoe] += 5
+                if shoes[shoe]['Brand'] == shoes[ownedShoe]['Brand']:
+                    recScore[shoe] += 10
+    else:
+        for shoe in recScore:
+            for ownedShoe in owned:
+                price_pred = query_db('select * from predictions where [Sneaker Name]=?', [ownedShoe])
+                ## TODO: fix date sorting to get most recent price pred. use most recent for each owned model to get best shoe to sell.
+                sorted_preds_date = sorted(price_pred, key=lambda kv: kv['date'], reverse=True)[0]
+
+        recScore = {m: 0 for m in owned}
+    return recScore
 
 @app.route('/portfolio')
 def display_owned():
