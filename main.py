@@ -134,12 +134,11 @@ def generate_recommendations(shoes, owned, user_type='collector'):
                     recScore[shoe] += 10
     else:
         for shoe in recScore:
-            for ownedShoe in owned:
-                price_pred = query_db('select * from predictions where [Sneaker Name]=?', [ownedShoe])
-                ## TODO: fix date sorting to get most recent price pred. use most recent for each owned model to get best shoe to sell.
-                sorted_preds_date = sorted(price_pred, key=lambda kv: kv['date'], reverse=True)[0]
-
-        recScore = {m: 0 for m in owned}
+            price_pred = query_db('select * from predictions where [Sneaker Name]=?', [shoe])
+            sorted_preds_date = sorted(price_pred, key=lambda kv: (int(kv['date'].split('/')[0]), int(kv['date'].split('/')[1]), int(kv['date'].split('/')[2])), reverse=True)[0]
+            sales = query_db('select * from sales where [Sneaker Name]=?', [shoe])
+            sorted_sales_date = sorted(sales, key=lambda kv: (int(kv['Order Date'].split('/')[2]), int(kv['Order Date'].split('/')[0]), int(kv['Order Date'].split('/')[1])), reverse=True)[0]
+            recScore[shoe] = sorted_preds_date['yhat'] / int(sorted_sales_date['Sale Price'][1:].replace(',', ''))
     return recScore
 
 @app.route('/portfolio')
