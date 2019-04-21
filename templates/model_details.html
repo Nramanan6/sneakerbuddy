@@ -126,6 +126,7 @@ var byDate = d3.nest()
   })
   .entries(sales)
 
+// Calculate daily averages
 byDate.forEach(function(d) {
   d['average'] = 0;
   d['values'].forEach(function(e) {
@@ -133,16 +134,28 @@ byDate.forEach(function(d) {
   });
   d['average'] /= d['values'].length;
   if (parseInt(d['key']) == graphedPredictions[0]['Day After Release']) {
+    graphedPredictions[0]['yhat_lower'] = d['average'];
+    graphedPredictions[0]['yhat_upper'] = d['average'];
     graphedPredictions[0]['yhat'] = d['average'];
   }
 });
 
+// Add in line for daily averages
 var line = d3.line()
   .x(function(d) {return dayScale(parseInt(d['key']))})
   .y(function(d) {return priceScale(d['average'])})
   .curve(d3.curveMonotoneX);
 
+// Add in lines for prediction + bounds
 var line2 = d3.line()
+  .x(function(d) {return dayScale(d['Day After Release'])})
+  .y(function(d) {return priceScale(d['yhat_lower'])})
+  .curve(d3.curveMonotoneX);
+var line3 = d3.line()
+  .x(function(d) {return dayScale(d['Day After Release'])})
+  .y(function(d) {return priceScale(d['yhat_upper'])})
+  .curve(d3.curveMonotoneX);
+var line4 = d3.line()
   .x(function(d) {return dayScale(d['Day After Release'])})
   .y(function(d) {return priceScale(d['yhat'])})
   .curve(d3.curveMonotoneX);
@@ -159,9 +172,38 @@ svg.append('path')
   .datum(graphedPredictions)
   .attr('class', 'line')
   .attr('d', line2)
+  .style('stroke', 'lime')
+  .style('fill', 'none')
+  .style('stroke-width', 1);
+svg.append('path')
+  .datum(graphedPredictions)
+  .attr('class', 'line')
+  .attr('d', line3)
+  .style('stroke', 'lime')
+  .style('fill', 'none')
+  .style('stroke-width', 1);
+svg.append('path')
+  .datum(graphedPredictions)
+  .attr('class', 'line')
+  .attr('d', line4)
   .style('stroke', 'green')
   .style('fill', 'none')
   .style('stroke-width', 2);
+
+var indexies = d3.range(graphedPredictions.length);
+
+var area = d3.area()
+  .x0(function(d) { return dayScale(d['Day After Release']); })
+  .x1(function(d, i) { return dayScale(d['Day After Release']); })
+  .y0(function(d) { return priceScale(d['yhat_lower']); })
+  .y1(function(d) { return priceScale(d['yhat_upper']); });
+
+svg.append('path')
+  .datum(graphedPredictions)
+  .attr('class', 'area')
+  .attr('d', area)
+  .style('fill', 'lime')
+  .style('fill-opacity', '0.2');
 
 var portfolio_button = document.getElementById('portfolio_button');
 portfolio_button.onclick = function(e) {
