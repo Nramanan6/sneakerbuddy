@@ -1,4 +1,4 @@
-from flask import Flask, g, render_template, request
+from flask import Flask, g, render_template, request, redirect
 import flask_login
 import operator
 import os
@@ -140,6 +140,10 @@ def generate_recommendations(shoes, owned, user_type='collector'):
             sorted_sales_date = sorted(sales, key=lambda kv: (int(kv['Order Date'].split('/')[2]), int(kv['Order Date'].split('/')[0]), int(kv['Order Date'].split('/')[1])), reverse=True)[0]
             recScore[shoe] = sorted_preds_date['yhat'] / int(sorted_sales_date['Sale Price'][1:].replace(',', ''))
     return recScore
+
+@app.route('/')
+def hello():
+    return redirect('/portfolio', code=302)
 
 @app.route('/portfolio')
 def display_owned():
