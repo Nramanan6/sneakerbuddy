@@ -1,4 +1,6 @@
-### DESCRIPTION: 
+#############################################################
+#############################################################
+DESCRIPTION: 
 
 Sneakerbuddy is an assistant web application 
 for StockX, a resale marketplace for limited edition
@@ -26,7 +28,9 @@ sqlite.
 
 
 
-### INSTALLATION: 
+#############################################################
+#############################################################
+INSTALLATION: 
 
 It is recommended to use Python virtual environments in some
 capacity. Once an isolated environment with Python3 is up,
@@ -47,11 +51,18 @@ check if working. This is not recommended, but should work.
 
 
 
-### EXECUTION:
+#############################################################
+#############################################################
+EXECUTION:
 
-Once the dependencies are installed, simply run either:
+Once the dependencies are installed, simply run the following
+command:
 
-`python main.py` or `python3 main.py`.
+`python main.py`
+
+or
+
+`python3 main.py`.
 
 This will serve up a Flask server, initiating the web app
 for service at:
@@ -60,4 +71,3 @@ for service at:
 
 Use the back button to go through various windows, such as
 portfolio add/drop and recommendations.
-
