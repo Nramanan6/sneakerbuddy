@@ -107,14 +107,25 @@ def display_shoes(user_type):
         return render_template('recommendations.html', recs=defaultShoeList)
 
     recScore = generate_recommendations(shoes, ownedShoes, user_type)
-
+    sellerRecScore = generate_seller_recommendations(shoes, ownedShoes)
     recommendations = []
+    sellerRecommendations = []
+
+    numShoes = min(10, len(ownedShoes))
+
     for i in range(0, 10):
         model = max(recScore.items(), key=operator.itemgetter(1))[0]
         recScore.pop(model, None)
         recommendations.append(shoes[model])
 
-    return render_template('recommendations.html', recs=recommendations)
+    if user_type == 'investor':
+        for i in range(0, numShoes):
+            model = max(sellerRecScore.items(), key=operator.itemgetter(1))[0]
+            sellerRecScore.pop(model, None)
+            sellerRecommendations.append(shoes[model])
+        print(sellerRecommendations)
+        return render_template('investor_recs.html', recs=recommendations, sellerRecs=sellerRecommendations)        
+    return render_template('recommendations.html', recs=recommendations, sellerRecs=sellerRecommendations)
 
 def generate_recommendations(shoes, owned, user_type='collector'):
     recScore = {}
@@ -139,6 +150,21 @@ def generate_recommendations(shoes, owned, user_type='collector'):
             sales = query_db('select * from sales where [Sneaker Name]=?', [shoe])
             sorted_sales_date = sorted(sales, key=lambda kv: (int(kv['Order Date'].split('/')[2]), int(kv['Order Date'].split('/')[0]), int(kv['Order Date'].split('/')[1])), reverse=True)[0]
             recScore[shoe] = sorted_preds_date['yhat'] / int(sorted_sales_date['Sale Price'][1:].replace(',', ''))
+    return recScore
+
+def generate_seller_recommendations(shoes, owned):
+    recScore = {}
+    for shoe in shoes:
+        if shoe in owned:
+            recScore[shoe] = 0
+    # If collector, use colors n whatnot
+    # else, it's an investor. use price prediction for seller first
+    for shoe in recScore:
+        price_pred = query_db('select * from predictions where [Sneaker Name]=?', [shoe])
+        sorted_preds_date = sorted(price_pred, key=lambda kv: (int(kv['date'].split('/')[0]), int(kv['date'].split('/')[1]), int(kv['date'].split('/')[2])), reverse=True)[0]
+        sales = query_db('select * from sales where [Sneaker Name]=?', [shoe])
+        sorted_sales_date = sorted(sales, key=lambda kv: (int(kv['Order Date'].split('/')[2]), int(kv['Order Date'].split('/')[0]), int(kv['Order Date'].split('/')[1])), reverse=True)[0]
+        recScore[shoe] = sorted_preds_date['yhat'] / int(sorted_sales_date['Sale Price'][1:].replace(',', ''))
     return recScore
 
 @app.route('/')

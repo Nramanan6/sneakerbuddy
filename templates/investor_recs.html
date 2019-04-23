@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+#rec_table, #seller_rec_table, h1, h2 {
+  font-family: 'Trebuchet MS', Arial, Helvetica, sans-serif;
+  border-collapse: collapse;
+}
+
+#rec_table, #seller_rec_table {
+  width: 900px;
+}
+
+td {
+  border: 1px solid #808080;
+}
+
+td, th {
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+	background-color: #f2f2f2;}
+
+tr:hover {background-color: #ddd;}
+
+th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #4CAF50;
+  color: white;
+}
+</style>
+</head>
+<body>
+
+<h1 id='header_text'>Sneaker Recommedation List</h1>
+
+<button type='button' id='portfolio'>View/Manage Portfolio</button>
+
+<p style='padding: 0 4em 0'></p>
+
+<h2>Buyer Recommedations</h2>
+<table id='rec_table'>
+	<tr>
+		<th align='left'>Model</th>
+		<th align='left'>Price</th>
+	</tr>
+	{% for shoe in recs %}
+	<tr>
+		<td>{{shoe['Model Name'] | format_model_name}}</td>
+		<td>{{shoe['Retail Price'] | format_price}}</td>
+	</tr>
+	{% endfor %}
+</table>
+
+<h2>Seller Recommedations</h2>
+<table id='seller_rec_table'>
+  <tr>
+    <th align='left'>Model</th>
+    <th align='left'>Price</th>
+  </tr>
+  {% for shoe in sellerRecs %}
+  <tr>
+    <td>{{shoe['Model Name'] | format_model_name}}</td>
+    <td>{{shoe['Retail Price'] | format_price}}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<script type='text/javascript'>
+var elements = document.getElementById('rec_table').getElementsByTagName('tbody')[0];
+elements.onclick = function(e) {
+  e = e || window.event;
+  var data = [];
+  var target = e.srcElement || e.target;
+  while (target && target.nodeName !== 'TR') {
+      target = target.parentNode;
+  }
+  window.location = '/sneaker/' + target.getElementsByTagName('td')[0].innerHTML;
+};
+
+var portfolio_button = document.getElementById('portfolio');
+portfolio_button.onclick = function(e) {
+  window.location = '/portfolio';
+};
+</script>
+
+</body>
+</html>
