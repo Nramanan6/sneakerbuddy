@@ -111,7 +111,7 @@ def display_shoes(user_type):
     recommendations = []
     sellerRecommendations = []
 
-    numShoes = min(10, len(ownedShoes))
+    numShoes = min(10, len(sellerRecScore.items()))
 
     for i in range(0, 10):
         model = max(recScore.items(), key=operator.itemgetter(1))[0]
